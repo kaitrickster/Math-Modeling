@@ -2,7 +2,7 @@ from interview_group import *
 from scipy import stats
 from collections import defaultdict
 
-PENALTY_FOR_IDENTICAL_GROUP = 5000
+PENALTY_FOR_IDENTICAL_GROUP = 50000
 PENALTY_FOR_OVERLAP = 1
 
 

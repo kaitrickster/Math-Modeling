@@ -5,14 +5,14 @@
 #SBATCH --nodes=3
 #SBATCH --mem=12GB
 #SBATCH --mail-type=ALL # select which email types will be sent
-#SBATCH --mail-user=kl3199@nyu.edu # put your email here if you want emails
+#SBATCH --mail-user=None # put your email here if you want emails
 
 #SBATCH --array=0 # here the number depends on number of jobs in the array
 #SBATCH --output=run_%A_%a.out # %A is SLURM_ARRAY_JOB_ID, %a is SLURM_ARRAY_TASK_ID
 #SBATCH --error=run_%A_%a.err
 
-#SBATCH --gres=gpu:1 # uncomment this line to request for a gpu if your program uses gpu
-# #SBATCH --constraint=cpu # use this if you want to only use cpu
+# #SBATCH --gres=gpu:1 # uncomment this line to request for a gpu if your program uses gpu
+#SBATCH --constraint=cpu # use this if you want to only use cpu
 
 # the sleep command will help with hpc issues when you have many jobs loading same files
 sleep $(( (RANDOM%10) + 1 ))
@@ -26,4 +26,4 @@ source deactivate
 source activate drl
 
 #echo ${SLURM_ARRAY_TASK_ID}
-python3 main.py
+python3 main.py --seed 1 --population_size 100 --student_count 379 --faculty_count 24

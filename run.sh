@@ -2,7 +2,7 @@
 #SBATCH --verbose
 #SBATCH -p aquila
 #SBATCH --time=100:00:00
-#SBATCH --nodes=1
+#SBATCH --nodes=3
 #SBATCH --mem=12GB
 #SBATCH --mail-type=ALL # select which email types will be sent
 #SBATCH --mail-user=kl3199@nyu.edu # put your email here if you want emails

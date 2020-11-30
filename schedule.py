@@ -2,7 +2,7 @@ from interview_group import *
 from scipy import stats
 from collections import defaultdict
 
-PENALTY_FOR_IDENTICAL_GROUP = 10
+PENALTY_FOR_IDENTICAL_GROUP = 5000
 PENALTY_FOR_OVERLAP = 1
 
 
@@ -64,7 +64,10 @@ class Schedule:
             if candidate in filter_set:
                 candidate = self.wrap_around(candidate, filter_set)
 
-            group1.faculty_id_list[which_faculty_idx] = candidate
+            if np.random.rand() <= 0.3:
+                group1.faculty_id_list[which_faculty_idx] = candidate
+            else:
+                continue
 
     def wrap_around(self, faculty_id, filter_set):
         new_faculty_id = faculty_id
@@ -80,6 +83,15 @@ class Schedule:
                     new_faculty_id = self.faculty_count - 1
 
         return new_faculty_id
+
+    def get_faculty_student_map(self):
+        faculty_student_map = defaultdict(set)
+        for student_id in range(self.student_count):
+            group1 = self.groups[student_id]
+            for faculty_id in group1.faculty_id_list:
+                faculty_student_map[faculty_id].add(student_id)
+
+        return faculty_student_map
 
     def __len__(self):
         return self.student_count

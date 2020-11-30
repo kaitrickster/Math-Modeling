@@ -26,4 +26,4 @@ source deactivate
 source activate drl
 
 #echo ${SLURM_ARRAY_TASK_ID}
-python3 main.py --seed 1 --population_size 100 --student_count 379 --faculty_count 24
+python3 main.py --seed 1 --population_size 100 --student_count 379 --faculty_count 24 --epoch 500

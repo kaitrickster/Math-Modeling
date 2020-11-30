@@ -1,12 +1,11 @@
-import numpy as np
 import copy
 from schedule import *
 
-MAX_ITER = 50
+MAX_ITER = 300
 
 
 class GeneticOptimizer:
-    def __init__(self, population_size, student_count, faculty_count, mutate_prob=0.3, elite=5):
+    def __init__(self, population_size, student_count, faculty_count, mutate_prob=0.3, elite=10):
         self.population_size = population_size
         self.student_count = student_count
         self.faculty_count = faculty_count
@@ -31,11 +30,10 @@ class GeneticOptimizer:
 
     def mutate(self, elite_population):
         elite_idx = np.random.randint(0, self.elite - 1)
-
         elite_schedule_copy = copy.deepcopy(elite_population[elite_idx])
 
         for group in elite_schedule_copy:
-            student_id = group.student.student_id
+            student_id = group.student_id
             which_faculty_idx = np.random.randint(0, COMMITTEE_SIZE - 1)
             faculty_id = group.faculty_id_list[which_faculty_idx]
             elite_schedule_copy.perturb_faculty(student_id, faculty_id, which_faculty_idx)
@@ -48,13 +46,7 @@ class GeneticOptimizer:
 
         elite_schedule_copy = copy.deepcopy(elite_population[elite_idx_one])
         schedule_two = elite_population[elite_idx_two]
-
-        which_faculty_idx = np.random.randint(0, COMMITTEE_SIZE - 1)
-        for group1, group2 in zip(elite_schedule_copy, schedule_two):
-            student_id = group1.student.student_id
-            faculty_id = group2.faculty_id_list[which_faculty_idx]
-            elite_schedule_copy.cross_over_two_groups(student_id, faculty_id, which_faculty_idx)
-
+        elite_schedule_copy.cross_over_two_schedules(schedule_two)
         return elite_schedule_copy
 
     def evolution(self):
@@ -67,6 +59,9 @@ class GeneticOptimizer:
                 self.lowest_cost = temp_lowest_cost
 
             print(f"lowest cost at iteration {i} : {self.lowest_cost}")
+            fp = open("record.txt", "a")
+            fp.write("lowest cost at iteration " + str(i) + " is : " + str(self.lowest_cost) + "\n")
+            fp.close()
 
             new_population = [self.population[idx] for idx in temp_elite_id_list]
 
@@ -74,11 +69,14 @@ class GeneticOptimizer:
                 if np.random.rand() <= self.mutate_prob:
                     new_schedule = self.mutate(new_population)
                 else:
-                    new_schedule = self.mutate(new_population)
+                    new_schedule = self.cross_over(new_population)
                 new_population.append(new_schedule)
 
             self.population = new_population
 
+        fp = open("record.txt", "a")
+        fp.write(str(self.best_schedule))
+        fp.close()
         return self.best_schedule
 
     def __str__(self):
@@ -91,13 +89,3 @@ class GeneticOptimizer:
 
     def __getitem__(self, item):
         return self.population[item]
-
-
-optimizer = GeneticOptimizer(50, 50, 24)
-optimizer.init_population()
-# optimizer.init_population()
-# print(optimizer.population[0][0].faculty_id_list)
-# print(optimizer)
-print(optimizer.filter_out_elite())
-print(optimizer.evolution())
-print(str(optimizer.best_schedule))

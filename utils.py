@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-
+import math
 
 def plot_faculty_interview_bar(faculty_student_map):
     vals = [len(value) for value in list(faculty_student_map.values())]
@@ -15,7 +15,7 @@ def plot_faculty_interview_bar(faculty_student_map):
 
 
 def export_best_schedule_to_csv(best_schedule):
-    clusters = best_schedule.pairwise_hierarchical_clustering()
+    clusters = best_schedule.hierarchical_clustering()
     row_list = []
     for i in range(len(clusters)):
         cluster = clusters[i]
@@ -33,8 +33,8 @@ def export_best_schedule_to_csv(best_schedule):
 
 
 def plot_loss_history(optimizer):
-    plt.plot(optimizer.loss_history)
+    plt.plot([math.log(val, 2) for val in optimizer.loss_history])
     plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.savefig("loss_curve.png")
+    plt.ylabel("Log Loss")
+    plt.savefig("log_loss_curve.png")
     plt.close()

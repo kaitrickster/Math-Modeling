@@ -12,6 +12,7 @@ class Schedule:
         self.student_count = student_count
         self.faculty_count = faculty_count
         self.groups = []
+        self.clusters = []
 
     def init_schedule(self):
         for student_id in range(self.student_count):
@@ -103,26 +104,46 @@ class Schedule:
 
         return faculty_student_map
 
-    def pairwise_hierarchical_clustering(self):
-        clusters = []
+    def hierarchical_clustering(self):
         i = 1
         while i < len(self.groups):
             cur_faculty_group = set(self.groups[i].faculty_id_list)
             prev_faculty_group = set(self.groups[i - 1].faculty_id_list)
             if len(cur_faculty_group.intersection(prev_faculty_group)) == 0:
-                cluster = {self.groups[i-1].student_id: self.groups[i-1].faculty_id_list,
+                cluster = {self.groups[i - 1].student_id: self.groups[i - 1].faculty_id_list,
                            self.groups[i].student_id: self.groups[i].faculty_id_list}
-                clusters.append(cluster)
+                self.clusters.append(cluster)
             else:
-                clusters.append({self.groups[i - 1].student_id: self.groups[i - 1].faculty_id_list})
-                clusters.append({self.groups[i].student_id: self.groups[i].faculty_id_list})
+                self.clusters.append({self.groups[i - 1].student_id: self.groups[i - 1].faculty_id_list})
+                self.clusters.append({self.groups[i].student_id: self.groups[i].faculty_id_list})
 
             if i + 2 == len(self.groups):
-                clusters.append({self.groups[i + 1].student_id: self.groups[i + 1].faculty_id_list})
-
+                self.clusters.append({self.groups[i + 1].student_id: self.groups[i + 1].faculty_id_list})
             i += 2
 
-        return clusters
+        count = len(self.clusters) * 3
+        for _ in range(count):
+            idx1 = np.random.randint(0, len(self.clusters) - 1)
+            idx2 = np.random.randint(0, len(self.clusters) - 1)
+            if idx1 == idx2:
+                continue
+            self.merge_two_cluster(idx1, idx2)
+
+        return self.clusters
+
+    def merge_two_cluster(self, i, j):
+        one, two = self.clusters[i], self.clusters[j]
+        group_one_list, group_two_list = [], []
+        for key, val in one.items():
+            group_one_list.extend(val)
+        for key, val in two.items():
+            group_two_list.extend(val)
+        group_one = set(group_one_list)
+        group_two = set(group_two_list)
+        if len(group_one.intersection(group_two)) == 0:
+            for student_id, faculty_id_list in two.items():
+                self.clusters[i][student_id] = faculty_id_list
+            self.clusters.pop(j)
 
     def __len__(self):
         return self.student_count

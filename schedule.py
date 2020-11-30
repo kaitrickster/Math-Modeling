@@ -2,8 +2,9 @@ from interview_group import *
 from scipy import stats
 from collections import defaultdict
 
-PENALTY_FOR_IDENTICAL_GROUP = 50000
+PENALTY_FOR_IDENTICAL_GROUP = 1000000
 PENALTY_FOR_OVERLAP = 1
+PENALTY_WEIGHT_FOR_PAIRWISE_OVERLAP = 0.01
 
 
 class Schedule:
@@ -18,13 +19,12 @@ class Schedule:
             interview_group.random_init(self.faculty_count)
             self.groups.append(interview_group)
 
-    def compute_cost(self):
-        cost = 0
+    def compute_loss(self):
+        loss = 0
         faculty_student_map = defaultdict(set)
-        for i in range(self.student_count):
+        for i in range(1, self.student_count):
             student_id = i
             group1 = self.groups[i]
-
             for faculty_id in group1.faculty_id_list:
                 faculty_student_map[faculty_id].add(student_id)
 
@@ -37,26 +37,38 @@ class Schedule:
 
                 overlap = first_faculty_group.intersection(second_faculty_group)
                 if len(overlap) == COMMITTEE_SIZE:
-                    cost += PENALTY_FOR_IDENTICAL_GROUP
+                    # penalty for R2: Two interview groups cannot have 4 identical interviewing faculty;
+                    loss += PENALTY_FOR_IDENTICAL_GROUP
                 elif len(overlap) >= 2:
-                    cost += PENALTY_FOR_OVERLAP
+                    # penalty for R3: Two interview groups having 2-3 identical interviewing faculty should be avoided;
+                    loss += PENALTY_FOR_OVERLAP
 
-        # calculate metric that measures if each faculty interviews similar amount of students
-        # scipy normalize a list to probability distribution before computing KL divergence
-        vals = [len(faculty_student_map[faculty_id]) if faculty_id in faculty_student_map else 0 \
+        # calculate metric that measures R1: Each faculty member interviews similar amount of students
+        # scipy normalize a list to a probability distribution before computing KL divergence
+        vals = [len(faculty_student_map[faculty_id]) if faculty_id in faculty_student_map else 0
                 for faculty_id in range(self.faculty_count)]
         avg = sum(vals) / len(vals)
         target_distribution = [avg for _ in range(len(vals))]
         clipped_kl_divergence = np.clip(stats.entropy(vals, target_distribution), 0, 1)
-        cost += clipped_kl_divergence
-        return cost
+        loss += (clipped_kl_divergence * 10)
+
+        # calculate loss for R4:
+        #   The number of students being interviewed by any pair of faculty members should be as small as possible.
+        for i in range(1, self.faculty_count):
+            for j in range(i):
+                student_group_one = set(faculty_student_map[i])
+                student_group_two = set(faculty_student_map[j])
+                overlap_count = len(student_group_one.intersection(student_group_two))
+                loss += (overlap_count * PENALTY_WEIGHT_FOR_PAIRWISE_OVERLAP)
+
+        return loss
 
     def perturb_faculty(self, student_id, faculty_id, which_faculty_idx):
         filter_set = set(self.groups[student_id].faculty_id_list)
         new_faculty_id = self.wrap_around(faculty_id, filter_set)
         self.groups[student_id].faculty_id_list[which_faculty_idx] = new_faculty_id
 
-    def cross_over_two_schedules(self, other):
+    def cross_over_two_schedules(self, other, beta):
         for group1, group2 in zip(self.groups, other.groups):
             which_faculty_idx = np.random.randint(0, COMMITTEE_SIZE - 1)
             candidate = group2.faculty_id_list[which_faculty_idx]
@@ -64,10 +76,8 @@ class Schedule:
             if candidate in filter_set:
                 candidate = self.wrap_around(candidate, filter_set)
 
-            if np.random.rand() <= 0.3:
+            if np.random.rand() <= beta:
                 group1.faculty_id_list[which_faculty_idx] = candidate
-            else:
-                continue
 
     def wrap_around(self, faculty_id, filter_set):
         new_faculty_id = faculty_id
@@ -92,6 +102,27 @@ class Schedule:
                 faculty_student_map[faculty_id].add(student_id)
 
         return faculty_student_map
+
+    def pairwise_hierarchical_clustering(self):
+        clusters = []
+        i = 1
+        while i < len(self.groups):
+            cur_faculty_group = set(self.groups[i].faculty_id_list)
+            prev_faculty_group = set(self.groups[i - 1].faculty_id_list)
+            if len(cur_faculty_group.intersection(prev_faculty_group)) == 0:
+                cluster = {self.groups[i-1].student_id: self.groups[i-1].faculty_id_list,
+                           self.groups[i].student_id: self.groups[i].faculty_id_list}
+                clusters.append(cluster)
+            else:
+                clusters.append({self.groups[i - 1].student_id: self.groups[i - 1].faculty_id_list})
+                clusters.append({self.groups[i].student_id: self.groups[i].faculty_id_list})
+
+            if i + 2 == len(self.groups):
+                clusters.append({self.groups[i + 1].student_id: self.groups[i + 1].faculty_id_list})
+
+            i += 2
+
+        return clusters
 
     def __len__(self):
         return self.student_count

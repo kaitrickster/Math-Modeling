@@ -11,13 +11,31 @@ def plot_faculty_interview_bar(faculty_student_map):
     plt.xlabel("faculty_id")
     plt.ylabel("Student Count")
     plt.savefig('faculty_student_count.png')
+    plt.close()
 
 
-def plot_best_schedule(best_schedule):
-    mat = [group.faculty_id_list for group in best_schedule]
-    rows = ["student id : " + str(student_id) for student_id in range(len(mat))]
-    columns = ["First Faculty ID", "Second Faculty ID", "Third Faculty ID", "Fourth Faculty ID"]
-    df = pd.DataFrame(mat, columns=columns)
-    df.index = rows
-    df.to_csv(r"data.csv")
+def export_best_schedule_to_csv(best_schedule):
+    clusters = best_schedule.pairwise_hierarchical_clustering()
+    row_list = []
+    for i in range(len(clusters)):
+        cluster = clusters[i]
+        print(cluster)
+        for student_id, faculty_id_list in cluster.items():
+            temp = [student_id]
+            for faculty_id in faculty_id_list:
+                temp.append(faculty_id)
+            row_list.append(temp)
 
+        row_list.append(["-----"] * 5)
+
+    df = pd.DataFrame(row_list, columns=["Student ID", "First Faculty ID", "Second Faculty ID",
+                                         "Third Faculty ID", "Fourth Faculty ID"])
+    df.to_csv(r"best_schedule.csv")
+
+
+def plot_loss_history(optimizer):
+    plt.plot(optimizer.loss_history)
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.savefig("loss_curve.png")
+    plt.close()

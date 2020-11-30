@@ -19,7 +19,6 @@ def export_best_schedule_to_csv(best_schedule):
     row_list = []
     for i in range(len(clusters)):
         cluster = clusters[i]
-        print(cluster)
         for student_id, faculty_id_list in cluster.items():
             temp = [student_id]
             for faculty_id in faculty_id_list:

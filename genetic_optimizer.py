@@ -1,7 +1,7 @@
 import copy
 from schedule import *
 
-MAX_ITER = 300
+MAX_ITER = 500
 
 
 class GeneticOptimizer:

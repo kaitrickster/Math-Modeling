@@ -2,8 +2,16 @@ from genetic_optimizer import GeneticOptimizer
 import numpy as np
 
 
-# mutate_prob, elite, alpha, beta
 def generate_hyperparameters(k):
+    """
+    generate k sets of hyperparameters randomly : (mutate_prob, elite, alpha, beta)
+
+    Args:
+        k: number of sets
+
+    Returns:
+        list of settings, where each setting is a set of hyperparameters
+    """
     settings = []
     for i in range(k):
         setting = [np.random.rand(), np.random.randint(3, 20), np.random.rand(), np.random.rand()]
@@ -11,8 +19,17 @@ def generate_hyperparameters(k):
     return settings
 
 
-# random search for best hyperparameter setting
 def random_search(k):
+    """
+    fix experiment setting: run genetic optimizer with student_count=50 and faculty_count=15 for 100 epoches
+    explore the best set hyperparameters on this experiment
+
+    Args:
+        k: number of sets of hyperparameters to search
+
+    Returns:
+        the best set of hyperparameters (with lowest loss)
+    """
     settings = generate_hyperparameters(k)
     lowest_loss_list = []
     for setting in settings:

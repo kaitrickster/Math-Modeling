@@ -15,12 +15,25 @@ class Schedule:
         self.clusters = []
 
     def init_schedule(self):
+        """
+        for each student in the schedule, randomly initialize the faculty committee
+        """
         for student_id in range(self.student_count):
             interview_group = InterviewGroup(student_id)
             interview_group.random_init(self.faculty_count)
             self.groups.append(interview_group)
 
     def compute_loss(self):
+        """
+        compute loss for current schedule subject to the following requirements
+            R1. Each faculty member interviews similar amount of students;
+            R2. Two interview groups cannot have 4 identical interviewing faculty;
+            R3. Two interview groups having 2-3 identical interviewing faculty should be avoided;
+            R4. The number of students being interviewed by any pair of faculty members should be as small as possible.
+
+        Returns:
+            the loss value
+        """
         loss = 0
         faculty_student_map = defaultdict(set)
         for i in range(1, self.student_count):
@@ -65,6 +78,14 @@ class Schedule:
         return loss
 
     def perturb_faculty(self, student_id, faculty_id, which_faculty_idx):
+        """
+        given the student_id, perturb its faculty group
+
+        Args:
+            student_id: the chosen student
+            faculty_id: which faculty to perturb
+            which_faculty_idx: the index of faculty in the student's faculty_id_list
+        """
         filter_set = set(self.groups[student_id].faculty_id_list)
         new_faculty_id = self.wrap_around(faculty_id, filter_set)
         self.groups[student_id].faculty_id_list[which_faculty_idx] = new_faculty_id
@@ -81,6 +102,15 @@ class Schedule:
                 group1.faculty_id_list[which_faculty_idx] = candidate
 
     def wrap_around(self, faculty_id, filter_set):
+        """
+        wrap around the target faculty_id while ensuring that it does not overlap with the filter_set
+
+        Args:
+            faculty_id: the faculty that we want to change
+
+        Returns:
+            the new faculty_id
+        """
         new_faculty_id = faculty_id
         while new_faculty_id in filter_set:
             p = np.random.rand()
@@ -96,6 +126,12 @@ class Schedule:
         return new_faculty_id
 
     def get_faculty_student_map(self):
+        """
+        construct map {faculty_id : list of student ids that the faculty interview}
+
+        Returns:
+            dictionary: {faculty_id : list of student ids that the faculty interview}
+        """
         faculty_student_map = defaultdict(set)
         for student_id in range(self.student_count):
             group1 = self.groups[student_id]
@@ -105,6 +141,12 @@ class Schedule:
         return faculty_student_map
 
     def hierarchical_clustering(self):
+        """
+        perform bottom up hierarchical clustering by merging two clusters
+
+        Returns
+           list of final clusters
+        """
         i = 1
         while i < len(self.groups):
             cur_faculty_group = set(self.groups[i].faculty_id_list)
@@ -132,6 +174,13 @@ class Schedule:
         return self.clusters
 
     def merge_two_cluster(self, i, j):
+        """
+        merge two interview clusters if their faculty groups do not overlap
+
+        Args
+            i: index of first cluster
+            j: index of second cluster
+        """
         one, two = self.clusters[i], self.clusters[j]
         group_one_list, group_two_list = [], []
         for key, val in one.items():

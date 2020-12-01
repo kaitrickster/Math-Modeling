@@ -20,12 +20,22 @@ class GeneticOptimizer:
         self.loss_history = []
 
     def init_population(self):
+        """
+        randomly initialize population
+        """
         for i in range(self.population_size):
             schedule = Schedule(self.student_count, self.faculty_count)
             schedule.init_schedule()
             self.population.append(schedule)
 
     def filter_out_elite(self):
+        """
+        filter out (self.elite) number of schedules with lowest loss
+
+        Returns:
+            idx_list: indices of schedules in population sort by loss in ascending order
+            loss: the lowest loss among all schedules in the population
+        """
         loss_list = []
         for schedule in self.population:
             loss_list.append(schedule.compute_loss())
@@ -33,6 +43,16 @@ class GeneticOptimizer:
         return idx_list[:self.elite], loss_list[idx_list[0]]
 
     def mutate(self, elite_population):
+        """
+        randomly mutate one schedule in the elite population
+        for each interview group in the chosen schedule, perturb one faculty id with probability self.alpha
+
+        Args:
+            elite_population: the elite population filtered out
+
+        Returns:
+            deep copy of the mutated schedule
+        """
         elite_idx = np.random.randint(0, self.elite - 1)
         elite_schedule_copy = copy.deepcopy(elite_population[elite_idx])
 
@@ -46,6 +66,16 @@ class GeneticOptimizer:
         return elite_schedule_copy
 
     def cross_over(self, elite_population):
+        """
+        randomly choose two schedules in the elite population
+        for each interview group pair, cross over them with probability self.beta
+
+        Args:
+            elite_population: the elite population filtered out
+
+        Returns:
+            deep copy of the mutated schedule
+        """
         elite_idx_one = np.random.randint(0, self.elite - 1)
         elite_idx_two = np.random.randint(0, self.elite - 1)
 
@@ -55,6 +85,13 @@ class GeneticOptimizer:
         return elite_schedule_copy
 
     def evolution(self):
+        """
+        repeat for (self.epoch) epoches
+        during each epoch, mutate with probability self.mutate_prob and cross_over with probability 1-self.mutate_prob
+
+        Returns:
+            the best schedule after (self.epoch) epoches of evolution
+        """
         self.init_population()
 
         for i in range(self.epoch):

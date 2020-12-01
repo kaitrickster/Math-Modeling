@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import math
 
+
 def plot_faculty_interview_bar(faculty_student_map):
     vals = [len(value) for value in list(faculty_student_map.values())]
     x = np.arange(len(vals))

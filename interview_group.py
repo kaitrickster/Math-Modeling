@@ -9,6 +9,12 @@ class InterviewGroup:
         self.faculty_id_list = []
 
     def random_init(self, faculty_count):
+        """
+        randomly initialize faculty group by sampling without replacement
+
+        Args:
+            faculty_count: number of faculties to interview a single student
+        """
         faculty_id_list = np.random.choice(faculty_count, COMMITTEE_SIZE, replace=False)
         self.faculty_id_list = faculty_id_list
 

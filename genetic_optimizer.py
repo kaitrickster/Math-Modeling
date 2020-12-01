@@ -74,7 +74,7 @@ class GeneticOptimizer:
             elite_population: the elite population filtered out
 
         Returns:
-            deep copy of the mutated schedule
+            deep copy of the new schedule
         """
         elite_idx_one = np.random.randint(0, self.elite - 1)
         elite_idx_two = np.random.randint(0, self.elite - 1)
@@ -103,12 +103,12 @@ class GeneticOptimizer:
 
             if not self.hyperparam_search:
                 print(f"lowest cost at iteration {i} : {self.lowest_loss}")
-            fp = open("record.txt", "a")
-            if i == self.epoch - 1:
-                fp.write(str(self.lowest_loss) + "\n")
-            else:
-                fp.write(str(self.lowest_loss) + ",")
-            fp.close()
+                fp = open("record.txt", "a")
+                if i == self.epoch - 1:
+                    fp.write(str(self.lowest_loss) + "\n")
+                else:
+                    fp.write(str(self.lowest_loss) + ",")
+                fp.close()
 
             new_population = [self.population[idx] for idx in temp_elite_id_list]
 

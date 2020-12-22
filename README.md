@@ -27,3 +27,5 @@ your model to include such considerations
 
 ## Solution
 Genetic Algorithm
+
+<img width="343" alt="algo" src="https://user-images.githubusercontent.com/55553465/102934646-88e46f80-44df-11eb-8a08-32a4ef3cb91a.png">

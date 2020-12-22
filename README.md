@@ -1,5 +1,7 @@
 # Math-Modeling-Project
 
+## MATH-SHU 251: Math Modeling (Fall 2020)
+
 ## Question
 NYU Shanghai is preparing to interview new candidates of the undergraduate program. There are N students
 entering the interview process, and NYU Shanghai has formed an interview committee of M faculty. Each student
